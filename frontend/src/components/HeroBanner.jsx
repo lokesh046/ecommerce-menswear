@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const DEFAULT_SLIDES = [
   {
@@ -38,115 +38,225 @@ const DEFAULT_SLIDES = [
 
 export default function HeroBanner({ onSelectCategory }) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(true);
   const [activeSlides, setActiveSlides] = useState(DEFAULT_SLIDES);
 
+  const displaySlides = [...activeSlides, activeSlides[0]];
+
   useEffect(() => {
-    const saved = localStorage.getItem('menswear_hero_slides');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed && parsed.length > 0) {
-          setActiveSlides(parsed);
+    const loadSlides = () => {
+      const saved = localStorage.getItem('menswear_hero_slides');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.length > 0) {
+            setActiveSlides(parsed);
+          }
+        } catch (e) {
+          console.error("Error parsing hero slides:", e);
         }
-      } catch (e) {
-        console.error("Error parsing hero slides:", e);
       }
-    }
+    };
+
+    loadSlides();
+    window.addEventListener('hero_slides_updated', loadSlides);
+    window.addEventListener('storage', loadSlides);
+    return () => {
+      window.removeEventListener('hero_slides_updated', loadSlides);
+      window.removeEventListener('storage', loadSlides);
+    };
   }, []);
 
+  // Slower auto-play timer (8.5 seconds)
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % activeSlides.length);
-    }, 6000);
+      handleNext();
+    }, 8500);
     return () => clearInterval(timer);
-  }, [activeSlides]);
+  }, [activeSlides, currentSlide]);
 
-  const slide = activeSlides[currentSlide] || DEFAULT_SLIDES[0];
+  const handleNext = () => {
+    setIsTransitioning(true);
+    setCurrentSlide((prev) => prev + 1);
+  };
+
+  const handlePrev = () => {
+    setIsTransitioning(true);
+    setCurrentSlide((prev) => (prev === 0 ? activeSlides.length - 1 : prev - 1));
+  };
+
+  // Infinite Forward Loop Reset
+  useEffect(() => {
+    if (currentSlide === activeSlides.length) {
+      const timeout = setTimeout(() => {
+        setIsTransitioning(false);
+        setCurrentSlide(0);
+      }, 1200); // 1.2s smooth transition duration
+      return () => clearTimeout(timeout);
+    }
+  }, [currentSlide, activeSlides.length]);
 
   return (
-    <div className="hero-container" style={{ position: 'relative', minHeight: 'calc(100vh - 75px)', width: '100%', overflow: 'hidden', borderBottom: '1px solid var(--border-color)', background: '#000000', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+    <div className="hero-container" style={{ position: 'relative', minHeight: 'calc(100vh - 75px)', width: '100%', overflow: 'hidden', borderBottom: '1px solid var(--border-color)', background: '#000000' }}>
       
-      {/* 100% Crystal Clear Background Image */}
+      {/* Sliding Track Container */}
       <div style={{
-        position: 'absolute',
-        inset: 0,
-        backgroundImage: `url(${slide.bgImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center center',
-        transition: 'background-image 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
-      }} />
-
-      {/* Subtle Lighting Overlay */}
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        background: 'linear-gradient(to top, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.05) 50%, rgba(0, 0, 0, 0) 100%)',
-        pointerEvents: 'none'
-      }} />
-
-      {/* Content Container */}
-      <div className="container" style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center', zIndex: 10, padding: '3.5rem 0' }}>
-        
-        {/* Restored Aligned Frosted Glass Text Container */}
-        <div style={{ 
-          maxWidth: '640px', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          gap: '1.25rem',
-          background: 'rgba(255, 255, 255, 0.92)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          padding: '2.75rem 3rem',
-          borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.95)',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-        }}>
-          
-          <div style={{ display: 'inline-flex', alignSelf: 'flex-start' }}>
-            <span className="badge badge-black" style={{ padding: '0.45rem 0.9rem', fontSize: '0.75rem', letterSpacing: '0.08em' }}>
-              <Sparkles size={13} /> {slide.badge}
-            </span>
-          </div>
-
-          <h1 className="hero-title" style={{
-            fontSize: '3.2rem',
-            lineHeight: 1.06,
-            fontWeight: 900,
-            textTransform: 'uppercase',
-            letterSpacing: '-0.02em',
-            color: '#000000',
-            fontFamily: 'var(--font-display)'
+        display: 'flex',
+        width: `${displaySlides.length * 100}%`,
+        height: '100%',
+        minHeight: 'calc(100vh - 75px)',
+        transform: `translateX(-${(currentSlide * 100) / displaySlides.length}%)`,
+        transition: isTransitioning ? 'transform 1.2s cubic-bezier(0.25, 1, 0.4, 1)' : 'none'
+      }}>
+        {displaySlides.map((s, idx) => (
+          <div key={idx} style={{
+            width: `${100 / displaySlides.length}%`,
+            minHeight: 'calc(100vh - 75px)',
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            flexShrink: 0
           }}>
-            {slide.title}
-          </h1>
 
-          <p style={{ fontSize: '1rem', color: '#4b5563', fontWeight: 600, lineHeight: 1.5 }}>
-            {slide.subtitle}
-          </p>
+            {/* Background Image for Slide */}
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage: `url(${s.bgImage})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center center'
+            }} />
 
-          <div style={{ display: 'flex', gap: '0.85rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-            <button 
-              className="btn btn-primary"
-              onClick={() => onSelectCategory(slide.categorySlug)}
-              style={{ padding: '0.85rem 1.75rem', fontSize: '0.85rem' }}
-            >
-              {slide.cta} <ArrowRight size={16} />
-            </button>
+            {/* Subtle Lighting Overlay */}
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(to top, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.05) 50%, rgba(0, 0, 0, 0) 100%)',
+              pointerEvents: 'none'
+            }} />
 
-            <button 
-              className="btn btn-secondary"
-              onClick={() => onSelectCategory(null)}
-              style={{ padding: '0.85rem 1.75rem', fontSize: '0.85rem', background: '#ffffff', color: '#000000', border: '1px solid var(--border-color)' }}
-            >
-              BROWSE ALL DROPS
-            </button>
+            {/* Content Container */}
+            <div className="container" style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center', zIndex: 10, padding: '3.5rem 0' }}>
+              
+              {/* Aligned Frosted Glass Text Container */}
+              <div style={{ 
+                maxWidth: '640px', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '1.25rem',
+                background: 'rgba(255, 255, 255, 0.92)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                padding: '2.75rem 3rem',
+                borderRadius: '16px',
+                border: '1px solid rgba(255, 255, 255, 0.95)',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+              }}>
+                
+                <div style={{ display: 'inline-flex', alignSelf: 'flex-start' }}>
+                  <span className="badge badge-black" style={{ padding: '0.45rem 0.9rem', fontSize: '0.75rem', letterSpacing: '0.08em' }}>
+                    <Sparkles size={13} /> {s.badge}
+                  </span>
+                </div>
+
+                <h1 className="hero-title" style={{
+                  fontSize: '3.2rem',
+                  lineHeight: 1.06,
+                  fontWeight: 900,
+                  textTransform: 'uppercase',
+                  letterSpacing: '-0.02em',
+                  color: '#000000',
+                  fontFamily: 'var(--font-display)'
+                }}>
+                  {s.title}
+                </h1>
+
+                <p style={{ fontSize: '1rem', color: '#4b5563', fontWeight: 600, lineHeight: 1.5 }}>
+                  {s.subtitle}
+                </p>
+
+                <div style={{ display: 'flex', gap: '0.85rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                  <button 
+                    className="btn btn-primary"
+                    onClick={() => onSelectCategory(s.categorySlug)}
+                    style={{ padding: '0.85rem 1.75rem', fontSize: '0.85rem' }}
+                  >
+                    {s.cta} <ArrowRight size={16} />
+                  </button>
+
+                  <button 
+                    className="btn btn-secondary"
+                    onClick={() => onSelectCategory(null)}
+                    style={{ padding: '0.85rem 1.75rem', fontSize: '0.85rem', background: '#ffffff', color: '#000000', border: '1px solid var(--border-color)' }}
+                  >
+                    BROWSE ALL DROPS
+                  </button>
+                </div>
+
+              </div>
+
+            </div>
+
           </div>
-
-        </div>
-
+        ))}
       </div>
 
-      {/* Sliding Image Thumbnails Controls */}
+      {/* Slide Navigation Arrows */}
+      <button 
+        onClick={handlePrev}
+        className="hide-mobile"
+        style={{
+          position: 'absolute',
+          left: '1.5rem',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          zIndex: 30,
+          background: 'rgba(255, 255, 255, 0.9)',
+          color: '#000000',
+          width: '46px',
+          height: '46px',
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 6px 20px rgba(0,0,0,0.2)',
+          cursor: 'pointer',
+          border: '1px solid var(--border-color)',
+          transition: 'all 0.2s'
+        }}
+        title="Previous Slide"
+      >
+        <ChevronLeft size={24} />
+      </button>
+
+      <button 
+        onClick={handleNext}
+        className="hide-mobile"
+        style={{
+          position: 'absolute',
+          right: '1.5rem',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          zIndex: 30,
+          background: 'rgba(255, 255, 255, 0.9)',
+          color: '#000000',
+          width: '46px',
+          height: '46px',
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 6px 20px rgba(0,0,0,0.2)',
+          cursor: 'pointer',
+          border: '1px solid var(--border-color)',
+          transition: 'all 0.2s'
+        }}
+        title="Next Slide"
+      >
+        <ChevronRight size={24} />
+      </button>
+
+      {/* Sliding Image Indicator Dots */}
       <div style={{
         position: 'absolute',
         bottom: '2rem',
@@ -160,22 +270,28 @@ export default function HeroBanner({ onSelectCategory }) {
         borderRadius: '20px',
         backdropFilter: 'blur(8px)'
       }}>
-        {activeSlides.map((s, idx) => (
-          <button 
-            key={idx} 
-            onClick={() => setCurrentSlide(idx)}
-            title={`Slide #${idx + 1}`}
-            style={{
-              width: idx === currentSlide ? '38px' : '10px',
-              height: '5px',
-              borderRadius: '2px',
-              background: idx === currentSlide ? '#ffffff' : 'rgba(255,255,255,0.4)',
-              transition: 'all 0.3s',
-              cursor: 'pointer',
-              border: 'none'
-            }}
-          />
-        ))}
+        {activeSlides.map((s, idx) => {
+          const activeIndex = currentSlide === activeSlides.length ? 0 : currentSlide;
+          return (
+            <button 
+              key={idx} 
+              onClick={() => {
+                setIsTransitioning(true);
+                setCurrentSlide(idx);
+              }}
+              title={`Slide #${idx + 1}`}
+              style={{
+                width: idx === activeIndex ? '38px' : '10px',
+                height: '5px',
+                borderRadius: '2px',
+                background: idx === activeIndex ? '#ffffff' : 'rgba(255,255,255,0.4)',
+                transition: 'all 0.3s',
+                cursor: 'pointer',
+                border: 'none'
+              }}
+            />
+          );
+        })}
       </div>
 
     </div>

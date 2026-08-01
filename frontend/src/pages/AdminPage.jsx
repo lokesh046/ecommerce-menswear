@@ -178,16 +178,50 @@ export default function AdminPage({ onReturnToStore }) {
   };
 
   const handleSaveHeroSlides = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     localStorage.setItem('menswear_hero_slides', JSON.stringify(heroSlides));
+    window.dispatchEvent(new Event('hero_slides_updated'));
     alert('Hero Banner Layout & Drop Links saved successfully!');
   };
 
-  // Image File Upload Helper (Cloudinary CDN + Base64 Fallback)
+  // Helper to compress local PNG/JPG images before saving
+  const compressImageFile = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 1200;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.82));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Image File Upload Helper (Cloudinary CDN + Canvas Compressed Base64 Fallback)
   const handleImageFileUpload = async (e, targetStateSetter) => {
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) return null;
 
+    let imageUrl = '';
     const cloudName = localStorage.getItem('menswear_cloudinary_cloud_name') || import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'menswear';
     const uploadPreset = localStorage.getItem('menswear_cloudinary_preset') || import.meta.env.VITE_CLOUDINARY_PRESET || 'mw3u1zla';
 
@@ -204,20 +238,27 @@ export default function AdminPage({ onReturnToStore }) {
 
         if (res.ok) {
           const data = await res.json();
-          const cdnUrl = data.secure_url;
-          targetStateSetter(prev => ({ ...prev, cover_image_url: cdnUrl, image_url: cdnUrl, bgImage: cdnUrl }));
-          return;
+          imageUrl = data.secure_url;
         }
       } catch (err) {
-        console.error("Cloudinary upload error, using local reader fallback:", err);
+        console.error("Cloudinary upload error, using compressed local fallback:", err);
       }
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      targetStateSetter(prev => ({ ...prev, cover_image_url: reader.result, image_url: reader.result, bgImage: reader.result }));
-    };
-    reader.readAsDataURL(file);
+    if (!imageUrl) {
+      imageUrl = await compressImageFile(file);
+    }
+
+    if (targetStateSetter && typeof targetStateSetter === 'function') {
+      targetStateSetter(prev => ({
+        ...prev,
+        cover_image_url: imageUrl,
+        image_url: imageUrl,
+        bgImage: imageUrl
+      }));
+    }
+
+    return imageUrl;
   };
 
   const handleToggleSize = (size) => {
@@ -291,6 +332,11 @@ export default function AdminPage({ onReturnToStore }) {
 
   const handleCreateProduct = async (e) => {
     e.preventDefault();
+    if (!newProduct.image_url) {
+      alert('Please upload a product photo or paste an image URL first.');
+      return;
+    }
+
     try {
       const slug = newProduct.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString().slice(-4);
       const payload = {
@@ -307,9 +353,22 @@ export default function AdminPage({ onReturnToStore }) {
       if (res.ok) {
         alert('Product published to collection successfully!');
         setShowAddProduct(false);
+        setNewProduct({
+          title: '',
+          slug: '',
+          category_id: categoriesList[0]?.id || 1,
+          price: 1999,
+          original_price: 2999,
+          image_url: '',
+          hover_image_url: '',
+          description: 'Premium tailored menswear.',
+          fabric: '100% Cotton',
+          fit: 'Regular Fit',
+          sizes: ['S', 'M', 'L', 'XL']
+        });
         fetchAdminData();
       } else {
-        alert('Failed to publish product.');
+        alert('Failed to publish product. Please check backend connection.');
       }
     } catch (err) {
       alert('Error creating product: ' + err.message);
@@ -667,17 +726,12 @@ export default function AdminPage({ onReturnToStore }) {
                         />
                         <label className="btn btn-secondary" style={{ padding: '0.5rem 0.85rem', fontSize: '0.75rem', cursor: 'pointer' }}>
                           <Upload size={14} /> Upload Image
-                          <input type="file" accept="image/*" onChange={(e) => {
-                            const file = e.target.files[0];
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onloadend = () => {
-                                const updated = [...heroSlides];
-                                updated[idx].bgImage = reader.result;
-                                updated[idx].cardImage = reader.result;
-                                setHeroSlides(updated);
-                              };
-                              reader.readAsDataURL(file);
+                          <input type="file" accept="image/*" onChange={async (e) => {
+                            const url = await handleImageFileUpload(e);
+                            if (url) {
+                              const updated = [...heroSlides];
+                              updated[idx].bgImage = url;
+                              setHeroSlides(updated);
                             }
                           }} style={{ display: 'none' }} />
                         </label>
