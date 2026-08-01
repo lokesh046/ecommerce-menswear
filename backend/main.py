@@ -36,8 +36,18 @@ def startup_event():
 def root():
     return {
         "status": "online",
-        "message": "Welcome to Snipes Menswear Backend API",
+        "message": "Welcome to 2020 MENS WEAR Backend API",
         "docs": "/docs"
+    }
+
+@app.get("/health")
+@app.get("/api/health")
+def health_check():
+    """Health check endpoint to keep backend warm and avoid cold-start delays."""
+    return {
+        "status": "healthy",
+        "service": "2020 MENS WEAR API",
+        "database": "connected"
     }
 
 app.include_router(products.router)

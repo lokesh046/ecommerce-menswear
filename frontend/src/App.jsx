@@ -23,6 +23,11 @@ export default function App() {
     const saved = localStorage.getItem('snipes_liked');
     return saved ? JSON.parse(saved) : [];
   });
+
+  useEffect(() => {
+    // Warm up backend server on page load
+    fetch(`${API_BASE_URL}/health`).catch(err => console.log('Warmup ping:', err));
+  }, []);
   const [cartItems, setCartItems] = useState(() => {
     const saved = localStorage.getItem('snipes_cart');
     return saved ? JSON.parse(saved) : [];
