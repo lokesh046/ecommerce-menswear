@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, DollarSign, Package, ShoppingBag, AlertTriangle, 
-  Plus, Trash2, ArrowLeft, RefreshCw, Database, Upload, Layers, Check, FolderPlus, Video, ExternalLink, Sparkles
+  Plus, Trash2, Edit, X, ArrowLeft, RefreshCw, Database, Upload, Layers, Check, FolderPlus, Video, ExternalLink, Sparkles
 } from 'lucide-react';
 import { API_BASE_URL } from '../api';
 
@@ -19,6 +19,7 @@ export default function AdminPage({ onReturnToStore }) {
   const [ordersList, setOrdersList] = useState([]);
   const [categoriesList, setCategoriesList] = useState([]);
   const [reelsList, setReelsList] = useState([]);
+  const [editingProduct, setEditingProduct] = useState(null);
 
   // Hero Banner Layout State (4 Slides default)
   const [heroSlides, setHeroSlides] = useState(() => {
@@ -372,6 +373,41 @@ export default function AdminPage({ onReturnToStore }) {
       }
     } catch (err) {
       alert('Error creating product: ' + err.message);
+    }
+  };
+
+  const handleUpdateProduct = async (e) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+    try {
+      const payload = {
+        title: editingProduct.title,
+        price: editingProduct.price,
+        original_price: editingProduct.original_price,
+        stock: editingProduct.stock,
+        category_id: editingProduct.category_id,
+        sizes: editingProduct.sizes,
+        image_url: editingProduct.image_url,
+        description: editingProduct.description || 'Premium tailored menswear.',
+        fabric: editingProduct.fabric || '100% Cotton',
+        fit: editingProduct.fit || 'Regular Fit'
+      };
+
+      const res = await fetch(`${API_BASE_URL}/api/products/${editingProduct.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        alert('Product details updated successfully!');
+        setEditingProduct(null);
+        fetchAdminData();
+      } else {
+        alert('Failed to update product. Please try again.');
+      }
+    } catch (err) {
+      alert('Error updating product: ' + err.message);
     }
   };
 
@@ -969,11 +1005,162 @@ export default function AdminPage({ onReturnToStore }) {
                       <td style={{ padding: '0.65rem', fontWeight: 700 }}>{p.sizes || 'S, M, L, XL, XXL'}</td>
                       <td style={{ padding: '0.65rem', fontWeight: 900 }}>₹{p.price.toLocaleString('en-IN')}</td>
                       <td style={{ padding: '0.65rem' }}><span className="badge badge-black">{p.stock} in stock</span></td>
-                      <td style={{ padding: '0.65rem' }}><button onClick={() => handleDeleteProduct(p.id)} title="Delete Product"><Trash2 size={15} /></button></td>
+                      <td style={{ padding: '0.65rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <button 
+                            onClick={() => setEditingProduct({ ...p, sizesArray: p.sizes ? p.sizes.split(',') : ['S', 'M', 'L', 'XL'] })} 
+                            style={{ color: '#2563eb', padding: '0.2rem', cursor: 'pointer' }} 
+                            title="Edit Product Details"
+                          >
+                            <Edit size={15} />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteProduct(p.id)} 
+                            style={{ color: '#ef4444', padding: '0.2rem', cursor: 'pointer' }} 
+                            title="Delete Product"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+
+              {/* Edit Product Modal */}
+              {editingProduct && (
+                <div className="modal-backdrop" onClick={() => setEditingProduct(null)}>
+                  <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ background: '#ffffff', padding: '1.75rem', borderRadius: '12px', width: '100%', maxWidth: '650px', maxHeight: '90vh', overflowY: 'auto', border: '1px solid var(--border-color)', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }}>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 800 }}>Edit Product #{editingProduct.id}</h3>
+                      <button onClick={() => setEditingProduct(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                        <X size={20} />
+                      </button>
+                    </div>
+
+                    <form onSubmit={handleUpdateProduct} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      
+                      <div style={{ gridColumn: 'span 2' }}>
+                        <label style={adminLabelStyle}>PRODUCT TITLE *</label>
+                        <input 
+                          type="text" 
+                          required 
+                          value={editingProduct.title} 
+                          onChange={(e) => setEditingProduct({...editingProduct, title: e.target.value})} 
+                          style={adminInputStyle} 
+                        />
+                      </div>
+
+                      <div>
+                        <label style={adminLabelStyle}>ASSIGN COLLECTION *</label>
+                        <select 
+                          value={editingProduct.category_id} 
+                          onChange={(e) => setEditingProduct({...editingProduct, category_id: parseInt(e.target.value)})} 
+                          style={adminInputStyle}
+                        >
+                          {categoriesList.map(cat => (
+                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label style={adminLabelStyle}>PRICE (₹) *</label>
+                        <input 
+                          type="number" 
+                          required 
+                          value={editingProduct.price} 
+                          onChange={(e) => setEditingProduct({...editingProduct, price: parseFloat(e.target.value)})} 
+                          style={adminInputStyle} 
+                        />
+                      </div>
+
+                      <div>
+                        <label style={adminLabelStyle}>ORIGINAL PRICE / MRP (₹)</label>
+                        <input 
+                          type="number" 
+                          value={editingProduct.original_price || ''} 
+                          onChange={(e) => setEditingProduct({...editingProduct, original_price: parseFloat(e.target.value)})} 
+                          style={adminInputStyle} 
+                        />
+                      </div>
+
+                      <div>
+                        <label style={adminLabelStyle}>STOCK COUNT *</label>
+                        <input 
+                          type="number" 
+                          required 
+                          value={editingProduct.stock} 
+                          onChange={(e) => setEditingProduct({...editingProduct, stock: parseInt(e.target.value)})} 
+                          style={adminInputStyle} 
+                        />
+                      </div>
+
+                      {/* Sizes Selection Pills */}
+                      <div style={{ gridColumn: 'span 2' }}>
+                        <label style={adminLabelStyle}>AVAILABLE SIZES *</label>
+                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.35rem' }}>
+                          {ALL_SIZES.map((size) => {
+                            const currentSizes = editingProduct.sizesArray || (editingProduct.sizes ? editingProduct.sizes.split(',') : []);
+                            const isSelected = currentSizes.includes(size);
+                            return (
+                              <button
+                                type="button"
+                                key={size}
+                                onClick={() => {
+                                  const updated = isSelected ? currentSizes.filter(s => s !== size) : [...currentSizes, size];
+                                  setEditingProduct({ ...editingProduct, sizesArray: updated, sizes: updated.join(',') });
+                                }}
+                                style={{
+                                  padding: '0.45rem 0.85rem',
+                                  borderRadius: '4px',
+                                  border: '1.5px solid #000000',
+                                  background: isSelected ? '#000000' : '#ffffff',
+                                  color: isSelected ? '#ffffff' : '#000000',
+                                  fontWeight: 800,
+                                  fontSize: '0.75rem',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                {size} {isSelected && '✓'}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div style={{ gridColumn: 'span 2' }}>
+                        <label style={adminLabelStyle}>PRODUCT PHOTO (URL OR FILE UPLOAD) *</label>
+                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                          <input 
+                            type="text" 
+                            required 
+                            value={editingProduct.image_url} 
+                            onChange={(e) => setEditingProduct({...editingProduct, image_url: e.target.value})} 
+                            style={{ ...adminInputStyle, flex: 1 }} 
+                          />
+                          <label className="btn btn-secondary" style={{ padding: '0.5rem 0.85rem', fontSize: '0.75rem', cursor: 'pointer' }}>
+                            <Upload size={14} /> Change Photo
+                            <input type="file" accept="image/*" onChange={(e) => handleImageFileUpload(e, setEditingProduct)} style={{ display: 'none' }} />
+                          </label>
+                        </div>
+                      </div>
+
+                      <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+                        <button type="button" onClick={() => setEditingProduct(null)} className="btn btn-secondary" style={{ padding: '0.6rem 1.25rem' }}>
+                          Cancel
+                        </button>
+                        <button type="submit" className="btn btn-primary" style={{ padding: '0.6rem 1.5rem' }}>
+                          Save Changes
+                        </button>
+                      </div>
+
+                    </form>
+                  </div>
+                </div>
+              )}
 
             </div>
           )}
