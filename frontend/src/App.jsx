@@ -10,6 +10,7 @@ import WhatsAppWidget from './components/WhatsAppWidget';
 import AdminPage from './pages/AdminPage';
 import CollectionPage from './pages/CollectionPage';
 import { Truck, RefreshCw, Headset, ShieldCheck } from 'lucide-react';
+import { API_BASE_URL } from './api';
 
 export default function App() {
   const [viewState, setViewState] = useState(() => {
