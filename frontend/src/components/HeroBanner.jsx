@@ -146,13 +146,14 @@ export default function HeroBanner({ onSelectCategory }) {
               {/* Aligned Frosted Glass Text Container */}
               <div style={{ 
                 maxWidth: '640px', 
+                width: '100%',
                 display: 'flex', 
                 flexDirection: 'column', 
-                gap: '1.25rem',
+                gap: '1rem',
                 background: 'rgba(255, 255, 255, 0.92)',
                 backdropFilter: 'blur(16px)',
                 WebkitBackdropFilter: 'blur(16px)',
-                padding: '2.75rem 3rem',
+                padding: 'clamp(1.25rem, 4vw, 2.5rem)',
                 borderRadius: '16px',
                 border: '1px solid rgba(255, 255, 255, 0.95)',
                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
@@ -165,8 +166,8 @@ export default function HeroBanner({ onSelectCategory }) {
                 </div>
 
                 <h1 className="hero-title" style={{
-                  fontSize: '3.2rem',
-                  lineHeight: 1.06,
+                  fontSize: 'clamp(1.6rem, 4.5vw, 3.2rem)',
+                  lineHeight: 1.1,
                   fontWeight: 900,
                   textTransform: 'uppercase',
                   letterSpacing: '-0.02em',
@@ -176,7 +177,7 @@ export default function HeroBanner({ onSelectCategory }) {
                   {slideData.title}
                 </h1>
 
-                <p style={{ fontSize: '1rem', color: '#4b5563', fontWeight: 600, lineHeight: 1.5 }}>
+                <p style={{ fontSize: 'clamp(0.85rem, 1.8vw, 1rem)', color: '#4b5563', fontWeight: 600, lineHeight: 1.45 }}>
                   {slideData.subtitle}
                 </p>
 
