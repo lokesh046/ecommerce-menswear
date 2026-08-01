@@ -183,16 +183,41 @@ export default function AdminPage({ onReturnToStore }) {
     alert('Hero Banner Layout & Drop Links saved successfully!');
   };
 
-  // Image File Upload Helper
-  const handleImageFileUpload = (e, targetStateSetter) => {
+  // Image File Upload Helper (Cloudinary CDN + Base64 Fallback)
+  const handleImageFileUpload = async (e, targetStateSetter) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        targetStateSetter(prev => ({ ...prev, cover_image_url: reader.result, image_url: reader.result }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    const cloudName = localStorage.getItem('menswear_cloudinary_cloud_name') || import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'menswear';
+    const uploadPreset = localStorage.getItem('menswear_cloudinary_preset') || import.meta.env.VITE_CLOUDINARY_PRESET || 'mw3u1zla';
+
+    if (cloudName && uploadPreset) {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', uploadPreset);
+
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+          method: 'POST',
+          body: formData
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const cdnUrl = data.secure_url;
+          targetStateSetter(prev => ({ ...prev, cover_image_url: cdnUrl, image_url: cdnUrl, bgImage: cdnUrl }));
+          return;
+        }
+      } catch (err) {
+        console.error("Cloudinary upload error, using local reader fallback:", err);
+      }
     }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      targetStateSetter(prev => ({ ...prev, cover_image_url: reader.result, image_url: reader.result, bgImage: reader.result }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleToggleSize = (size) => {
@@ -484,6 +509,33 @@ export default function AdminPage({ onReturnToStore }) {
                   />
                   <button type="button" onClick={() => alert('WhatsApp phone number updated successfully!')} className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.75rem' }}>
                     Save Number
+                  </button>
+                </div>
+              </div>
+
+              {/* Cloudinary 25 GB Free Cloud Storage Card */}
+              <div style={{ background: '#ffffff', border: '1px solid var(--border-color)', padding: '1.25rem 1.5rem', borderRadius: 'var(--radius-sm)', marginBottom: '1.5rem' }}>
+                <h4 style={{ fontSize: '0.9rem', fontWeight: 800, marginBottom: '0.25rem' }}>☁️ Cloudinary Free CDN Image Storage (Optional)</h4>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.85rem' }}>
+                  Enable free CDN image hosting for 25,000+ product photos. Enter your Cloudinary <strong>Cloud Name</strong> &amp; <strong>Unsigned Upload Preset</strong>.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.75rem', maxWidth: '640px' }}>
+                  <input 
+                    type="text" 
+                    placeholder="Cloud Name (e.g. menswear)"
+                    defaultValue={localStorage.getItem('menswear_cloudinary_cloud_name') || import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'menswear'}
+                    onChange={(e) => localStorage.setItem('menswear_cloudinary_cloud_name', e.target.value.trim())}
+                    style={{ padding: '0.55rem 0.85rem', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', outline: 'none' }}
+                  />
+                  <input 
+                    type="text" 
+                    placeholder="Upload Preset (e.g. mw3u1zla)"
+                    defaultValue={localStorage.getItem('menswear_cloudinary_preset') || import.meta.env.VITE_CLOUDINARY_PRESET || 'mw3u1zla'}
+                    onChange={(e) => localStorage.setItem('menswear_cloudinary_preset', e.target.value.trim())}
+                    style={{ padding: '0.55rem 0.85rem', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', outline: 'none' }}
+                  />
+                  <button type="button" onClick={() => alert('Cloudinary CDN Keys Saved! Image uploads will now save automatically to your Cloudinary CDN.')} className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.75rem' }}>
+                    Save Keys
                   </button>
                 </div>
               </div>
