@@ -140,33 +140,33 @@ export default function HeroBanner({ onSelectCategory }) {
               pointerEvents: 'none'
             }} />
 
-            {/* Content Container */}
-            <div className="container" style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center', zIndex: 10, padding: '3.5rem 0' }}>
+            {/* Content Container (Middle Left Aligned) */}
+            <div className="container" style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', zIndex: 10, padding: '2.5rem 0' }}>
               
-              {/* Aligned Frosted Glass Text Container */}
-              <div style={{ 
-                maxWidth: '640px', 
+              {/* Middle-Left Frosted Glass Card (Auto-Minimizes on Mobile) */}
+              <div className="hero-card" style={{ 
+                maxWidth: '600px', 
                 width: '100%',
                 display: 'flex', 
                 flexDirection: 'column', 
-                gap: '1rem',
+                gap: 'clamp(0.5rem, 1.8vw, 1rem)',
                 background: 'rgba(255, 255, 255, 0.92)',
                 backdropFilter: 'blur(16px)',
                 WebkitBackdropFilter: 'blur(16px)',
-                padding: 'clamp(1.25rem, 4vw, 2.5rem)',
+                padding: 'clamp(1rem, 3.5vw, 2.5rem)',
                 borderRadius: '16px',
                 border: '1px solid rgba(255, 255, 255, 0.95)',
                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
               }}>
                 
                 <div style={{ display: 'inline-flex', alignSelf: 'flex-start' }}>
-                  <span className="badge badge-black" style={{ padding: '0.45rem 0.9rem', fontSize: '0.75rem', letterSpacing: '0.08em' }}>
-                    <Sparkles size={13} /> {slideData.badge}
+                  <span className="badge badge-black hero-badge" style={{ padding: '0.4rem 0.85rem', fontSize: 'clamp(0.65rem, 1.2vw, 0.75rem)', letterSpacing: '0.08em' }}>
+                    <Sparkles size={12} /> {slideData.badge}
                   </span>
                 </div>
 
                 <h1 className="hero-title" style={{
-                  fontSize: 'clamp(1.6rem, 4.5vw, 3.2rem)',
+                  fontSize: 'clamp(1.35rem, 3.8vw, 3rem)',
                   lineHeight: 1.1,
                   fontWeight: 900,
                   textTransform: 'uppercase',
@@ -177,25 +177,25 @@ export default function HeroBanner({ onSelectCategory }) {
                   {slideData.title}
                 </h1>
 
-                <p style={{ fontSize: 'clamp(0.85rem, 1.8vw, 1rem)', color: '#4b5563', fontWeight: 600, lineHeight: 1.45 }}>
+                <p className="hero-subtitle" style={{ fontSize: 'clamp(0.775rem, 1.5vw, 0.95rem)', color: '#4b5563', fontWeight: 600, lineHeight: 1.4 }}>
                   {slideData.subtitle}
                 </p>
 
-                <div style={{ display: 'flex', gap: '0.85rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '0.65rem', marginTop: '0.35rem', flexWrap: 'wrap' }}>
                   <button 
-                    className="btn btn-primary"
+                    className="btn btn-primary hero-btn"
                     onClick={() => onSelectCategory(slideData.categorySlug)}
-                    style={{ padding: '0.85rem 1.75rem', fontSize: '0.85rem' }}
+                    style={{ padding: 'clamp(0.6rem, 1.5vw, 0.85rem) clamp(1rem, 2vw, 1.6rem)', fontSize: 'clamp(0.725rem, 1.3vw, 0.825rem)' }}
                   >
-                    {slideData.cta} <ArrowRight size={16} />
+                    {slideData.cta} <ArrowRight size={15} />
                   </button>
 
                   <button 
-                    className="btn btn-secondary"
+                    className="btn btn-secondary hero-btn"
                     onClick={() => onSelectCategory(null)}
-                    style={{ padding: '0.85rem 1.75rem', fontSize: '0.85rem', background: '#ffffff', color: '#000000', border: '1px solid var(--border-color)' }}
+                    style={{ padding: 'clamp(0.6rem, 1.5vw, 0.85rem) clamp(1rem, 2vw, 1.6rem)', fontSize: 'clamp(0.725rem, 1.3vw, 0.825rem)', background: '#ffffff', color: '#000000', border: '1px solid var(--border-color)' }}
                   >
-                    BROWSE ALL DROPS
+                    ALL DROPS
                   </button>
                 </div>
 
