@@ -77,17 +77,20 @@ export default function HeroBanner({ onSelectCategory }) {
 
   const handleNext = () => {
     setIsTransitioning(true);
-    setCurrentSlide((prev) => prev + 1);
+    setCurrentSlide((prev) => {
+      if (prev >= activeSlides.length) return 1;
+      return prev + 1;
+    });
   };
 
   const handlePrev = () => {
     setIsTransitioning(true);
-    setCurrentSlide((prev) => (prev === 0 ? activeSlides.length - 1 : prev - 1));
+    setCurrentSlide((prev) => (prev <= 0 ? activeSlides.length - 1 : prev - 1));
   };
 
   // Infinite Forward Loop Reset
   useEffect(() => {
-    if (currentSlide === activeSlides.length) {
+    if (currentSlide >= activeSlides.length) {
       const timeout = setTimeout(() => {
         setIsTransitioning(false);
         setCurrentSlide(0);
@@ -105,27 +108,29 @@ export default function HeroBanner({ onSelectCategory }) {
         width: `${displaySlides.length * 100}%`,
         height: '100%',
         minHeight: 'calc(100vh - 75px)',
-        transform: `translateX(-${(currentSlide * 100) / displaySlides.length}%)`,
+        transform: `translateX(-${(Math.min(currentSlide, activeSlides.length) * 100) / displaySlides.length}%)`,
         transition: isTransitioning ? 'transform 1.2s cubic-bezier(0.25, 1, 0.4, 1)' : 'none'
       }}>
-        {displaySlides.map((s, idx) => (
-          <div key={idx} style={{
-            width: `${100 / displaySlides.length}%`,
-            minHeight: 'calc(100vh - 75px)',
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center',
-            flexShrink: 0
-          }}>
+        {displaySlides.map((s, idx) => {
+          const slideData = s || activeSlides[0];
+          return (
+            <div key={idx} style={{
+              width: `${100 / displaySlides.length}%`,
+              minHeight: 'calc(100vh - 75px)',
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              flexShrink: 0
+            }}>
 
-            {/* Background Image for Slide */}
-            <div style={{
-              position: 'absolute',
-              inset: 0,
-              backgroundImage: `url(${s.bgImage})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center center'
-            }} />
+              {/* Background Image for Slide */}
+              <div style={{
+                position: 'absolute',
+                inset: 0,
+                backgroundImage: `url(${slideData.bgImage})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center center'
+              }} />
 
             {/* Subtle Lighting Overlay */}
             <div style={{
@@ -155,7 +160,7 @@ export default function HeroBanner({ onSelectCategory }) {
                 
                 <div style={{ display: 'inline-flex', alignSelf: 'flex-start' }}>
                   <span className="badge badge-black" style={{ padding: '0.45rem 0.9rem', fontSize: '0.75rem', letterSpacing: '0.08em' }}>
-                    <Sparkles size={13} /> {s.badge}
+                    <Sparkles size={13} /> {slideData.badge}
                   </span>
                 </div>
 
@@ -168,20 +173,20 @@ export default function HeroBanner({ onSelectCategory }) {
                   color: '#000000',
                   fontFamily: 'var(--font-display)'
                 }}>
-                  {s.title}
+                  {slideData.title}
                 </h1>
 
                 <p style={{ fontSize: '1rem', color: '#4b5563', fontWeight: 600, lineHeight: 1.5 }}>
-                  {s.subtitle}
+                  {slideData.subtitle}
                 </p>
 
                 <div style={{ display: 'flex', gap: '0.85rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
                   <button 
                     className="btn btn-primary"
-                    onClick={() => onSelectCategory(s.categorySlug)}
+                    onClick={() => onSelectCategory(slideData.categorySlug)}
                     style={{ padding: '0.85rem 1.75rem', fontSize: '0.85rem' }}
                   >
-                    {s.cta} <ArrowRight size={16} />
+                    {slideData.cta} <ArrowRight size={16} />
                   </button>
 
                   <button 
@@ -196,9 +201,9 @@ export default function HeroBanner({ onSelectCategory }) {
               </div>
 
             </div>
-
           </div>
-        ))}
+        );
+      })}
       </div>
 
       {/* Slide Navigation Arrows */}
