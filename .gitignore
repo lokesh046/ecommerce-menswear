@@ -1,0 +1,29 @@
+# Environment & Secret files
+.env
+.env.local
+.env.*.local
+*.env
+
+# Python Bytecode & Cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Local Databases
+*.db
+*.sqlite3
+
+# Node Modules & Frontend Builds
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Virtual environments
+venv/
+.venv/
+
+# OS & Editor files
+.DS_Store
+.vscode/
+.idea/

@@ -1,0 +1,51 @@
+import os
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from database import engine, Base
+import models
+from routers import products, categories, orders, admin, reels
+from seed_data import seed_database
+
+# Create tables
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(
+    title="Snipes Menswear API",
+    description="Backend API for Snipes Menswear e-commerce clone, featuring Neon PostgreSQL / SQLite persistence.",
+    version="1.0.0"
+)
+
+# Configure CORS for frontend access
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.on_event("startup")
+def startup_event():
+    print("Application starting up... Seeding database if empty.")
+    try:
+        seed_database()
+    except Exception as e:
+        print(f"Error seeding database on startup: {e}")
+
+@app.get("/")
+def root():
+    return {
+        "status": "online",
+        "message": "Welcome to Snipes Menswear Backend API",
+        "docs": "/docs"
+    }
+
+app.include_router(products.router)
+app.include_router(categories.router)
+app.include_router(orders.router)
+app.include_router(admin.router)
+app.include_router(reels.router)
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
