@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import CategoryBar from '../components/CategoryBar';
 import ProductCard from '../components/ProductCard';
@@ -20,6 +20,9 @@ export default function CollectionPage({
   const [sortBy, setSortBy] = useState('newest');
   const [searchQuery, setSearchQuery] = useState('');
   const [showWishlistOnly, setShowWishlistOnly] = useState(false);
+
+  // In-memory cache for 0ms instant collection switching
+  const productCacheRef = useRef({});
 
   // Wishlist & Cart states
   const [likedProductIds, setLikedProductIds] = useState(() => {
@@ -54,14 +57,35 @@ export default function CollectionPage({
   const fetchCategories = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/categories`);
-      if (res.ok) setCategories(await res.json());
+      if (res.ok) {
+        const cats = await res.json();
+        setCategories(cats);
+        // Prefetch collection items in background for 0ms switching
+        cats.forEach(cat => {
+          fetch(`${API_BASE_URL}/api/products?sort_by=newest&category_slug=${cat.slug}`)
+            .then(r => r.json())
+            .then(data => {
+              productCacheRef.current[`${cat.slug}_newest_`] = data;
+            })
+            .catch(() => {});
+        });
+      }
     } catch (err) {
       console.error('Error fetching categories:', err);
     }
   };
 
   const fetchProducts = async () => {
-    setLoading(true);
+    const cacheKey = `${selectedCategory || 'all'}_${sortBy}_${searchQuery.trim()}`;
+
+    // 0ms Instant Cache Load (Stale-While-Revalidate)
+    if (productCacheRef.current[cacheKey]) {
+      setProducts(productCacheRef.current[cacheKey]);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+
     try {
       let url = `${API_BASE_URL}/api/products?sort_by=${sortBy}`;
       if (selectedCategory) {
@@ -72,7 +96,11 @@ export default function CollectionPage({
       }
 
       const res = await fetch(url);
-      if (res.ok) setProducts(await res.json());
+      if (res.ok) {
+        const data = await res.json();
+        productCacheRef.current[cacheKey] = data;
+        setProducts(data);
+      }
     } catch (err) {
       console.error('Error fetching collection products:', err);
     } finally {
