@@ -224,7 +224,7 @@ export default function AdminPage({ onReturnToStore }) {
 
     let imageUrl = '';
     const cloudName = localStorage.getItem('menswear_cloudinary_cloud_name') || import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'menswear';
-    const uploadPreset = localStorage.getItem('menswear_cloudinary_preset') || import.meta.env.VITE_CLOUDINARY_PRESET || 'mw3u1zla';
+    const uploadPreset = localStorage.getItem('menswear_cloudinary_preset') || import.meta.env.VITE_CLOUDINARY_PRESET || 'menswear';
 
     if (cloudName && uploadPreset) {
       try {
@@ -624,8 +624,8 @@ export default function AdminPage({ onReturnToStore }) {
                   />
                   <input 
                     type="text" 
-                    placeholder="Upload Preset (e.g. mw3u1zla)"
-                    defaultValue={localStorage.getItem('menswear_cloudinary_preset') || import.meta.env.VITE_CLOUDINARY_PRESET || 'mw3u1zla'}
+                    placeholder="Upload Preset (e.g. menswear)"
+                    defaultValue={localStorage.getItem('menswear_cloudinary_preset') || import.meta.env.VITE_CLOUDINARY_PRESET || 'menswear'}
                     onChange={(e) => localStorage.setItem('menswear_cloudinary_preset', e.target.value.trim())}
                     style={{ padding: '0.55rem 0.85rem', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', outline: 'none' }}
                   />
@@ -924,8 +924,12 @@ export default function AdminPage({ onReturnToStore }) {
                     </select>
                   </div>
                   <div>
-                    <label style={adminLabelStyle}>PRICE (₹) *</label>
-                    <input type="number" required value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: parseFloat(e.target.value)})} style={adminInputStyle} />
+                    <label style={adminLabelStyle}>SALE PRICE (₹) *</label>
+                    <input type="number" required value={newProduct.price} onChange={(e) => setNewProduct({...newProduct, price: parseFloat(e.target.value)})} style={adminInputStyle} placeholder="e.g. 1499" />
+                  </div>
+                  <div>
+                    <label style={adminLabelStyle}>ORIGINAL MRP PRICE (₹) [FOR STRIKE-THROUGH DISCOUNT]</label>
+                    <input type="number" value={newProduct.original_price || ''} onChange={(e) => setNewProduct({...newProduct, original_price: parseFloat(e.target.value)})} style={adminInputStyle} placeholder="e.g. 2499" />
                   </div>
                   <div>
                     <label style={adminLabelStyle}>STOCK AVAILABILITY *</label>
