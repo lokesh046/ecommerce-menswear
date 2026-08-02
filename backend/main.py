@@ -24,9 +24,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from sqlalchemy import text
+
 @app.on_event("startup")
 def startup_event():
     print("Application starting up... Seeding database if empty.")
+    try:
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE products ALTER COLUMN image_url TYPE TEXT;"))
+            conn.execute(text("ALTER TABLE categories ALTER COLUMN image_url TYPE TEXT;"))
+            conn.execute(text("ALTER TABLE reels ALTER COLUMN cover_image_url TYPE TEXT;"))
+    except Exception as e:
+        print(f"Database column text migration notice: {e}")
+
     try:
         seed_database()
     except Exception as e:

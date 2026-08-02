@@ -10,7 +10,7 @@ class Category(Base):
     name = Column(String(100), nullable=False)
     slug = Column(String(100), unique=True, index=True, nullable=False)
     description = Column(Text, nullable=True)
-    image_url = Column(String(500), nullable=True)
+    image_url = Column(Text, nullable=True)
 
     products = relationship("Product", back_populates="category", cascade="all, delete-orphan")
 
@@ -27,7 +27,7 @@ class Product(Base):
     fabric = Column(String(100), nullable=True) # e.g., "100% Premium Cotton", "Pure Linen"
     fit = Column(String(100), nullable=True)    # e.g., "Slim Fit", "Oversized Fit", "Tailored Fit"
     description = Column(Text, nullable=True)
-    image_url = Column(String(500), nullable=False)
+    image_url = Column(Text, nullable=False)
     stock = Column(Integer, default=50)
     sizes = Column(String(100), default="S,M,L,XL,XXL")
     is_featured = Column(Boolean, default=False)
@@ -78,7 +78,7 @@ class Reel(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(200), nullable=False)
-    reel_url = Column(String(500), nullable=False)
-    cover_image_url = Column(String(500), nullable=False)
+    reel_url = Column(Text, nullable=False)
+    cover_image_url = Column(Text, nullable=False)
     tagline = Column(String(200), nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
