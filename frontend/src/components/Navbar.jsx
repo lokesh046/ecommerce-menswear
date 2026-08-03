@@ -60,7 +60,7 @@ export default function Navbar({
                 if (setSearchQuery) setSearchQuery('');
                 if (onNavigateHome) onNavigateHome(); 
               }}
-              style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}
+              style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', marginLeft: '-0.45rem' }}
             >
               <img 
                 src="/logo.png" 
