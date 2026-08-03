@@ -6,6 +6,7 @@ import ProductDetailModal from './components/ProductDetailModal';
 import CartDrawer from './components/CartDrawer';
 import CheckoutModal from './components/CheckoutModal';
 import InstagramReels from './components/InstagramReels';
+import GoogleReviews from './components/GoogleReviews';
 import WhatsAppWidget from './components/WhatsAppWidget';
 import AdminPage from './pages/AdminPage';
 import CollectionPage from './pages/CollectionPage';
@@ -174,6 +175,9 @@ export default function App() {
           </cite>
         </div>
       </section>
+
+      {/* Google Reviews Carousel Section */}
+      <GoogleReviews />
 
       {/* Instagram Reels Showcase Section */}
       <InstagramReels />
