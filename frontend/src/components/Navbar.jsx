@@ -65,7 +65,7 @@ export default function Navbar({
               <img 
                 src="/logo.png" 
                 alt="2020 MENS WEAR" 
-                style={{ height: 'clamp(54px, 5.5vw, 68px)', maxHeight: '68px', width: 'auto', objectFit: 'contain', display: 'block' }} 
+                style={{ height: '42px', width: 'auto', objectFit: 'contain', display: 'block' }} 
               />
             </a>
           </div>
