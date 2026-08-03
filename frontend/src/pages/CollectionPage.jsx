@@ -5,7 +5,7 @@ import ProductCard from '../components/ProductCard';
 import ProductDetailModal from '../components/ProductDetailModal';
 import CartDrawer from '../components/CartDrawer';
 import CheckoutModal from '../components/CheckoutModal';
-import { ArrowLeft, ShieldCheck, Camera, Globe } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Camera, Globe, MapPin } from 'lucide-react';
 import { API_BASE_URL } from '../api';
 
 export default function CollectionPage({ 
@@ -284,7 +284,17 @@ export default function CollectionPage({
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+            <a 
+              href="https://maps.app.goo.gl/2fii4NfWj8CpwmEZ9" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="btn btn-secondary" 
+              style={{ padding: '0.45rem 0.85rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', background: '#ffffff', color: '#000000', border: '1px solid var(--border-color)' }}
+            >
+              <MapPin size={15} /> Store Location
+            </a>
+
             <a 
               href="https://www.instagram.com/2020_mens_wear/" 
               target="_blank" 

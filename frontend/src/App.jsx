@@ -9,7 +9,7 @@ import InstagramReels from './components/InstagramReels';
 import WhatsAppWidget from './components/WhatsAppWidget';
 import AdminPage from './pages/AdminPage';
 import CollectionPage from './pages/CollectionPage';
-import { Truck, RefreshCw, Headset, ShieldCheck } from 'lucide-react';
+import { Truck, RefreshCw, Headset, ShieldCheck, MapPin } from 'lucide-react';
 import { API_BASE_URL } from './api';
 
 export default function App() {
@@ -204,10 +204,28 @@ export default function App() {
           </div>
 
           <div>
-            <h4 style={{ color: '#000000', fontSize: '0.85rem', marginBottom: '0.85rem', textTransform: 'uppercase' }}>STORE & ADMIN</h4>
+            <h4 style={{ color: '#000000', fontSize: '0.85rem', marginBottom: '0.85rem', textTransform: 'uppercase' }}>STORE & LOCATION</h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.4rem', fontWeight: 600 }}>
               <li><span>2020 MENS WEAR Store & Online</span></li>
               <li><span>Instagram: @2020_mens_wear</span></li>
+              <li style={{ marginTop: '0.25rem' }}>
+                <a 
+                  href="https://maps.app.goo.gl/2fii4NfWj8CpwmEZ9" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    color: '#2563eb',
+                    fontWeight: 800,
+                    fontSize: '0.8rem',
+                    textDecoration: 'underline'
+                  }}
+                >
+                  <MapPin size={15} /> Store Location (Google Maps) ↗
+                </a>
+              </li>
               <li style={{ marginTop: '0.5rem' }}>
                 <button 
                   onClick={() => changeView('admin', '/admin')}
