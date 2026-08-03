@@ -75,7 +75,7 @@ export default function GoogleReviews() {
   }, [reviews.length]);
 
   return (
-    <section style={{ padding: '3.5rem 0', background: '#fcfcfc', borderBottom: '1px solid var(--border-color)' }}>
+    <section style={{ padding: '3.5rem 0 1.5rem 0', background: '#ffffff' }}>
       <div className="container">
         
         {/* Header matching exact user screenshot layout */}
