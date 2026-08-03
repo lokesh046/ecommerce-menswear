@@ -14,8 +14,29 @@ import { API_BASE_URL } from './api';
 
 export default function App() {
   const [viewState, setViewState] = useState(() => {
-    return window.location.pathname === '/admin' ? 'admin' : 'home';
+    const path = window.location.pathname;
+    if (path.startsWith('/admin')) return 'admin';
+    if (path.startsWith('/collection')) return 'collection';
+    return 'home';
   });
+
+  const changeView = (newView, path = '/') => {
+    setViewState(newView);
+    if (window.location.pathname !== path) {
+      window.history.pushState(null, '', path);
+    }
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      if (path.startsWith('/admin')) setViewState('admin');
+      else if (path.startsWith('/collection')) setViewState('collection');
+      else setViewState('home');
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const [activeCollectionSlug, setActiveCollectionSlug] = useState('linen-shirts');
 
@@ -29,6 +50,7 @@ export default function App() {
     // Warm up backend server on page load
     fetch(`${API_BASE_URL}/health`).catch(err => console.log('Warmup ping:', err));
   }, []);
+
   const [cartItems, setCartItems] = useState(() => {
     const saved = localStorage.getItem('snipes_cart');
     return saved ? JSON.parse(saved) : [];
@@ -49,7 +71,7 @@ export default function App() {
 
   const handleOpenCollectionPage = (slug) => {
     setActiveCollectionSlug(slug || 'linen-shirts');
-    setViewState('collection');
+    changeView('collection', '/collection');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -96,7 +118,7 @@ export default function App() {
 
   // 1. Separate Admin Workspace Page
   if (viewState === 'admin') {
-    return <AdminPage onReturnToStore={() => setViewState('home')} />;
+    return <AdminPage onReturnToStore={() => changeView('home', '/')} />;
   }
 
   // 2. Separate Dedicated Collection Page
@@ -104,8 +126,8 @@ export default function App() {
     return (
       <CollectionPage 
         initialCategorySlug={activeCollectionSlug}
-        onReturnToHome={() => setViewState('home')}
-        onNavigateAdmin={() => setViewState('admin')}
+        onReturnToHome={() => changeView('home', '/')}
+        onNavigateAdmin={() => changeView('admin', '/admin')}
       />
     );
   }
@@ -188,7 +210,7 @@ export default function App() {
               <li><span>Instagram: @2020_mens_wear</span></li>
               <li style={{ marginTop: '0.5rem' }}>
                 <button 
-                  onClick={() => setViewState('admin')}
+                  onClick={() => changeView('admin', '/admin')}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
